@@ -1,45 +1,326 @@
 {
+  "version": 2,
   "items": [
     {
-      "code": "IS-001",
+      "code": "IS-101",
       "smokeSource": "黄山松烟",
       "glueRatio": "7.5%",
       "ageYears": 8,
       "storage": "恒湿柜B",
       "status": "已试磨",
+      "trials": [
+        {
+          "id": "T-seed-101",
+          "openedAt": "2026-09-22T04:11:25.571Z",
+          "openedBy": "周砚农",
+          "finishedAt": "2026-09-22T05:11:25.571Z",
+          "conclusion": "已试磨",
+          "calibrationAt": "2026-09-22T05:11:25.571Z",
+          "weighedBy": "周砚农",
+          "segments": {
+            "front": 42.5,
+            "middle": 58,
+            "back": 51.2
+          },
+          "total": 151.7,
+          "lastResult": "已试磨",
+          "attempts": [
+            {
+              "at": "2026-09-22T05:11:25.571Z",
+              "kind": "采样称量",
+              "by": "周砚农",
+              "calibrationAt": "2026-09-22T05:11:25.571Z",
+              "segments": {
+                "front": 42.5,
+                "middle": 58,
+                "back": 51.2
+              },
+              "total": 151.7,
+              "result": "已试磨",
+              "reasons": []
+            }
+          ],
+          "archives": []
+        }
+      ],
       "logs": [
         {
-          "at": "2026-06-11",
-          "step": "试磨",
-          "note": "宣纸20滴水，出墨快，评分86",
-          "score": 86
+          "at": "2026-09-22T04:11:25.571Z",
+          "step": "建档",
+          "note": "墨锭 IS-101 建档，等待试磨"
+        },
+        {
+          "at": "2026-09-22T05:11:25.571Z",
+          "step": "判定",
+          "note": "三段称量通过：合计151.7mg，天平校准有效，准入「已试磨」"
         }
       ]
     },
     {
-      "code": "IS-002",
+      "code": "IS-102",
       "smokeSource": "桐油烟",
       "glueRatio": "8%",
       "ageYears": 3,
       "storage": "试样盒C",
-      "status": "重点观察",
-      "logs": [
+      "status": "待复采",
+      "trials": [
         {
-          "at": "2026-06-21T03:50:28.907Z",
-          "step": "试磨",
-          "note": "棉连纸，评分79",
-          "score": 79
+          "id": "T-seed-102",
+          "openedAt": "2026-09-22T00:11:25.571Z",
+          "openedBy": "李慕墨",
+          "finishedAt": null,
+          "conclusion": null,
+          "calibrationAt": "2026-09-22T18:11:25.571Z",
+          "weighedBy": "李慕墨",
+          "segments": {
+            "front": 46,
+            "middle": 52.3,
+            "back": null
+          },
+          "total": null,
+          "lastResult": "待复采",
+          "attempts": [
+            {
+              "at": "2026-09-22T18:11:25.571Z",
+              "kind": "采样称量",
+              "by": "李慕墨",
+              "calibrationAt": "2026-09-22T18:11:25.571Z",
+              "segments": {
+                "front": 46,
+                "middle": 52.3,
+                "back": null
+              },
+              "total": null,
+              "result": "待复采",
+              "reasons": [
+                "缺少后段出墨量",
+                "天平校准已超过8小时"
+              ]
+            }
+          ],
+          "archives": []
         }
       ],
-      "tests": [
+      "logs": [
         {
-          "at": "2026-06-21T03:50:28.907Z",
-          "paper": "棉连纸",
-          "water": "18滴",
-          "speed": "中",
-          "colorLayer": "偏暖",
-          "sediment": "少",
-          "score": 79
+          "at": "2026-09-22T00:11:25.571Z",
+          "step": "建档",
+          "note": "墨锭 IS-102 建档，等待试磨"
+        },
+        {
+          "at": "2026-09-22T00:11:25.571Z",
+          "step": "试磨",
+          "note": "开启试磨（首次提交）T-seed-102，负责人：李慕墨"
+        },
+        {
+          "at": "2026-09-22T18:11:25.571Z",
+          "step": "判定",
+          "note": "T-seed-102 转「待复采」：缺少后段出墨量；天平校准已超过8小时"
+        }
+      ]
+    },
+    {
+      "code": "IS-103",
+      "smokeSource": "漆烟",
+      "glueRatio": "9%",
+      "ageYears": 5,
+      "storage": "陈架A2",
+      "status": "待复核",
+      "trials": [
+        {
+          "id": "T-seed-103",
+          "openedAt": "2026-09-22T22:11:25.571Z",
+          "openedBy": "苏墨卿",
+          "finishedAt": null,
+          "conclusion": null,
+          "calibrationAt": "2026-09-23T04:11:25.571Z",
+          "weighedBy": "苏墨卿",
+          "segments": {
+            "front": 35,
+            "middle": 40,
+            "back": 38
+          },
+          "total": 113,
+          "lastResult": "待复核",
+          "attempts": [
+            {
+              "at": "2026-09-23T05:11:25.571Z",
+              "kind": "采样称量",
+              "by": "苏墨卿",
+              "calibrationAt": "2026-09-23T04:11:25.571Z",
+              "segments": {
+                "front": 35,
+                "middle": 40,
+                "back": 38
+              },
+              "total": 113,
+              "result": "待复核",
+              "reasons": [
+                "三段合计113mg不在120–180mg区间，转待复核（须换人重称）"
+              ]
+            }
+          ],
+          "archives": []
+        }
+      ],
+      "logs": [
+        {
+          "at": "2026-09-22T22:11:25.571Z",
+          "step": "建档",
+          "note": "墨锭 IS-103 建档，等待试磨"
+        },
+        {
+          "at": "2026-09-22T22:11:25.571Z",
+          "step": "试磨",
+          "note": "开启试磨（首次提交）T-seed-103，负责人：苏墨卿"
+        },
+        {
+          "at": "2026-09-23T05:11:25.571Z",
+          "step": "判定",
+          "note": "T-seed-103 转「待复核」：三段合计113mg不在120–180mg区间，转待复核（须换人重称）"
+        }
+      ]
+    },
+    {
+      "code": "IS-104",
+      "smokeSource": "工业炭黑",
+      "glueRatio": "7%",
+      "ageYears": 1,
+      "storage": "待检区D",
+      "status": "试磨中",
+      "trials": [
+        {
+          "id": "T-seed-104",
+          "openedAt": "2026-09-23T05:31:25.571Z",
+          "openedBy": "韩松",
+          "finishedAt": null,
+          "conclusion": null,
+          "calibrationAt": null,
+          "weighedBy": null,
+          "segments": {
+            "front": null,
+            "middle": null,
+            "back": null
+          },
+          "total": null,
+          "lastResult": null,
+          "attempts": [],
+          "archives": []
+        }
+      ],
+      "logs": [
+        {
+          "at": "2026-09-23T05:31:25.571Z",
+          "step": "建档",
+          "note": "墨锭 IS-104 建档，等待试磨"
+        },
+        {
+          "at": "2026-09-23T05:31:25.571Z",
+          "step": "试磨",
+          "note": "开启试磨（首次提交）T-seed-104，负责人：韩松"
+        }
+      ]
+    },
+    {
+      "code": "IS-105",
+      "smokeSource": "黄山松烟",
+      "glueRatio": "8.5%",
+      "ageYears": 12,
+      "storage": "恒湿柜B",
+      "status": "待试磨",
+      "trials": [],
+      "logs": [
+        {
+          "at": "2026-09-23T03:11:25.571Z",
+          "step": "建档",
+          "note": "墨锭 IS-105 建档，等待试磨"
+        }
+      ]
+    },
+    {
+      "code": "IS-106",
+      "smokeSource": "桐油烟（已修正）",
+      "glueRatio": "8%",
+      "ageYears": 6,
+      "storage": "陈架A1",
+      "status": "待试磨",
+      "trials": [
+        {
+          "id": "T-seed-106",
+          "openedAt": "2026-09-20T06:11:25.571Z",
+          "openedBy": "周砚农",
+          "finishedAt": "2026-09-20T08:11:25.571Z",
+          "conclusion": "已失效",
+          "invalidatedAt": "2026-09-23T00:11:25.571Z",
+          "invalidReason": "烟料来源「桐油烟」→「桐油烟（已修正）」",
+          "calibrationAt": "2026-09-20T08:11:25.571Z",
+          "weighedBy": "周砚农",
+          "segments": {
+            "front": 44,
+            "middle": 60,
+            "back": 54
+          },
+          "total": 158,
+          "lastResult": "已试磨",
+          "attempts": [
+            {
+              "at": "2026-09-20T08:11:25.571Z",
+              "kind": "采样称量",
+              "by": "周砚农",
+              "calibrationAt": "2026-09-20T08:11:25.571Z",
+              "segments": {
+                "front": 44,
+                "middle": 60,
+                "back": 54
+              },
+              "total": 158,
+              "result": "已试磨",
+              "reasons": []
+            }
+          ],
+          "archives": [
+            {
+              "at": "2026-09-23T00:11:25.571Z",
+              "by": "李慕墨",
+              "kind": "档案修正",
+              "reason": "烟料来源「桐油烟」→「桐油烟（已修正）」",
+              "changes": {
+                "smokeSource": [
+                  "桐油烟",
+                  "桐油烟（已修正）"
+                ]
+              },
+              "snapshot": {
+                "conclusion": "已试磨",
+                "finishedAt": "2026-09-20T08:11:25.571Z",
+                "calibrationAt": "2026-09-20T08:11:25.571Z",
+                "segments": {
+                  "front": 44,
+                  "middle": 60,
+                  "back": 54
+                },
+                "total": 158,
+                "weighedBy": "周砚农"
+              }
+            }
+          ]
+        }
+      ],
+      "logs": [
+        {
+          "at": "2026-09-20T06:11:25.571Z",
+          "step": "建档",
+          "note": "墨锭 IS-106 建档，等待试磨"
+        },
+        {
+          "at": "2026-09-20T08:11:25.571Z",
+          "step": "判定",
+          "note": "三段称量通过：合计158mg，天平校准有效，准入「已试磨」"
+        },
+        {
+          "at": "2026-09-23T00:11:25.571Z",
+          "step": "留档",
+          "note": "烟料/胶料修正（烟料来源「桐油烟」→「桐油烟（已修正）」），1条原「已试磨」结论失效留档：T-seed-106"
         }
       ]
     }

@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>三段取样与称量校准准入台</title>
+  <style>
+    :root { --bg:#f1f3ef; --panel:#fff; --ink:#20241f; --muted:#687066; --line:#d4ddd0; --accent:#526f43; --warn:#9b4937; --amber:#a8721d; --blue:#33587a; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:Arial,"PingFang SC",sans-serif; }
+    header { padding:22px 28px; background:#fff; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:16px; align-items:center; }
+    h1 { margin:0; font-size:24px; } h2 { margin:0 0 12px; font-size:17px; } h3 { margin:0; font-size:16px; }
+    main { display:grid; grid-template-columns:400px 1fr; gap:22px; padding:22px 28px; align-items:start; }
+    form,.panel,.card,.stat,details { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
+    label { display:block; margin:10px 0 5px; color:var(--muted); font-size:13px; }
+    input,select,textarea { width:100%; border:1px solid var(--line); border-radius:6px; padding:9px; font:inherit; background:#fff; }
+    button { border:0; border-radius:6px; background:var(--accent); color:#fff; padding:9px 13px; font-weight:700; cursor:pointer; }
+    button.secondary { background:#69736a; } button.mini { padding:5px 9px; font-size:12px; }
+    button:disabled { opacity:.45; cursor:not-allowed; }
+    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px; margin-bottom:14px; }
+    .stat strong { display:block; font-size:22px; }
+    .stat span { font-size:13px; color:var(--muted); }
+    .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+    .toolbar select,.toolbar input { width:auto; min-width:160px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; }
+    .card { display:grid; gap:8px; }
+    .meta { color:var(--muted); font-size:13px; }
+    .pill { display:inline-block; border-radius:999px; padding:3px 10px; font-size:12px; font-weight:700; border:1px solid var(--line); }
+    .pill.待试磨 { background:#eef0ec; color:#5a6157; } .pill.试磨中 { background:#e7eef5; color:var(--blue); }
+    .pill.待复采 { background:#f8f0df; color:var(--amber); } .pill.待复核 { background:#f6e6e1; color:var(--warn); }
+    .pill.已试磨 { background:#e9f0e2; color:var(--accent); }
+    .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .segs { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+    .segs div { background:#f6f8f4; border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-size:12px; }
+    .segs b { display:block; font-size:14px; }
+    .hint { border-radius:6px; padding:8px 10px; font-size:13px; background:#f6f8f4; border:1px solid var(--line); }
+    .hint.warn { background:#f6e6e1; border-color:#dcc3bb; color:var(--warn); }
+    .hint.amber { background:#f8f0df; border-color:#e3d3ac; color:var(--amber); }
+    .hint.ok { background:#e9f0e2; border-color:#c8d8bb; color:var(--accent); }
+    .error { color:var(--warn); font-size:13px; white-space:pre-line; margin-top:8px; }
+    .logs { border-top:1px solid var(--line); padding-top:8px; max-height:110px; overflow:auto; font-size:12px; }
+    .logs div { margin:2px 0; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th,td { border-bottom:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+    .archive { background:#faf4f2; border:1px dashed #d8b5ab; border-radius:6px; padding:8px 10px; margin:6px 0; font-size:12px; color:#7a4a3e; }
+    .tag { font-size:11px; border:1px solid var(--line); border-radius:4px; padding:1px 6px; color:var(--muted); }
+    .tag.bad { color:var(--warn); border-color:#dcc3bb; background:#f6e6e1; }
+    .tag.good { color:var(--accent); border-color:#c8d8bb; background:#e9f0e2; }
+    .tag.dead { color:#8a5a4e; border-color:#d8b5ab; background:#faf4f2; }
+    .detail-actions { display:flex; gap:10px; margin:10px 0; flex-wrap:wrap; }
+    @media (max-width:960px){ header{display:block;padding:18px 16px;} main{grid-template-columns:1fr;padding:16px;} }
+  </style>
+</head>
+<body>
+  <header>
+    <div><h1>三段取样与称量校准准入台</h1><div class="meta">每锭仅一条未结束试磨 · 校准8小时有效 · 前中后三段合计120–180mg准入 · 复核换人重称 · 修正即失效留档</div></div>
+    <div class="row"><span id="clock" class="meta"></span><button id="reload">刷新</button></div>
+  </header>
+  <main>
+    <section>
+      <form id="createForm">
+        <h2>① 墨锭建档</h2>
+        <label>墨锭编号 *</label><input name="code" required placeholder="如 IS-107">
+        <label>烟料来源</label><input name="smokeSource" placeholder="如 黄山松烟">
+        <label>胶料比例</label><input name="glueRatio" placeholder="如 8%">
+        <label>存放年限</label><input name="ageYears" type="number" min="0" name="ageYears">
+        <label>存放位置</label><input name="storage" placeholder="如 恒湿柜B">
+        <div style="margin-top:12px"><button>保存墨锭</button></div>
+      </form>
+
+      <form id="samplingForm" style="margin-top:14px">
+        <h2>② 三段称量准入</h2>
+        <label>选择墨锭</label><select name="code" id="itemSelect"></select>
+        <div id="openContext" class="hint"></div>
+        <label>负责人 / 称量人 *</label><input name="operator" placeholder="复核重称时必须与原称人不同">
+        <label>天平校准时间 *（有效期 8 小时）</label>
+        <div class="row">
+          <input name="calibrationAt" type="datetime-local" id="calibrationAt" style="flex:1">
+          <button type="button" class="secondary mini" id="calNow">取当前时间</button>
+        </div>
+        <label>前 / 中 / 后三段出墨量（mg）</label>
+        <div class="segs">
+          <div>前段<input name="front" type="number" step="0.1" min="0" class="seg"></div>
+          <div>中段<input name="middle" type="number" step="0.1" min="0" class="seg"></div>
+          <div>后段<input name="back" type="number" step="0.1" min="0" class="seg"></div>
+        </div>
+        <div class="meta" style="margin-top:6px">三段合计：<b id="liveTotal">0</b> mg（准入区间 120–180mg，越界转待复核）</div>
+        <div class="row" style="margin-top:10px">
+          <button id="openBtn" type="button">开启试磨（首次提交）</button>
+          <button id="submitBtn" type="button">提交三段称量</button>
+        </div>
+        <div class="error" id="formError"></div>
+      </form>
+    </section>
+
+    <section>
+      <div class="stats" id="stats"></div>
+      <div class="toolbar">
+        <select id="statusFilter"><option value="">全部状态</option></select>
+        <input id="search" placeholder="搜索编号 / 烟料 / 位置">
+      </div>
+      <div class="panel" style="margin-bottom:14px">
+        <h2>墨锭卡片</h2>
+        <div class="grid" id="cards"></div>
+      </div>
+      <details id="detail" open style="display:none">
+        <summary class="row" style="cursor:pointer;justify-content:space-between"><b id="detailTitle">单锭记录</b><span class="meta">点击卡片「查看记录」，刷新后同步重取</span></summary>
+        <div id="detailBody" style="margin-top:10px"></div>
+      </details>
+    </section>
+  </main>
+
+  <script>
+    const STATUSES = ["待试磨","试磨中","待复采","待复核","已试磨"];
+    const SEG_LABELS = { front:"前段", middle:"中段", back:"后段" };
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    let items = [], stats = {}, detailItem = null;
+
+    function esc(v){ return String(v ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function fmt(v){ return (v === null || v === undefined || v === "") ? "—" : esc(v); }
+    function dt(iso){ if(!iso) return "—"; const d = new Date(iso); return isNaN(d) ? esc(iso) : d.toLocaleString("zh-CN", { hour12:false }); }
+    async function api(path, options={}) {
+      const opts = options.body ? { ...options, headers:{ "Content-Type":"application/json" } } : options;
+      const res = await fetch(path, opts);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw Object.assign(new Error(data.message || "请求失败"), { reasons:data.reasons || [] });
+      return data;
+    }
+    function nowLocal(){ const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,16); }
+    function openTrialOf(item){ return (item.trials||[]).find(t => !t.finishedAt && t.conclusion !== "已失效"); }
+
+    // 刷新：卡片列表、统计、单锭记录三路同时重取，保证同步
+    async function load() {
+      const selected = localStorage.getItem("selectedCode");
+      const calls = [api("/api/items"), api("/api/stats")];
+      if (selected) calls.push(api("/api/items/" + encodeURIComponent(selected)).catch(() => null));
+      const [list, stat, detail] = await Promise.all(calls);
+      items = list; stats = stat; detailItem = detail || null;
+      render();
+    }
+
+    function renderStats() {
+      const order = [...STATUSES, "失效留档"];
+      $("#stats").innerHTML = order.map(k =>
+        '<div class="stat"><span>'+k+'</span><strong>'+(stats[k] ?? 0)+'</strong></div>').join("");
+    }
+
+    function cardHtml(item) {
+      const open = openTrialOf(item);
+      const lastAttempt = open && open.attempts.length ? open.attempts[open.attempts.length-1] : null;
+      const valid = (item.trials||[]).find(t => t.conclusion === "已试磨");
+      const dead = (item.trials||[]).filter(t => t.conclusion === "已失效");
+      const segLine = (seg) => SEGMENTS_HTML(seg);
+      let banner = "";
+      if (open) {
+        const r = lastAttempt ? lastAttempt.result : null;
+        banner = '<div class="hint '+(r==="待复核"?"warn":r==="待复采"?"amber":"")+'">'
+          + '未结束试磨 <b>'+esc(open.id)+'</b> · 首次提交人：'+esc(open.openedBy)+' · '+dt(open.openedAt)
+          + (lastAttempt ? '<br>最近判定：<b>'+esc(r)+'</b>'+(lastAttempt.total!==null?'（合计'+esc(lastAttempt.total)+'mg）':'')
+            + (lastAttempt.reasons.length?'<br>'+esc(lastAttempt.reasons.join("；")):"") : '<br>尚未提交三段称量')
+          + '</div>'
+          + segLine(open.segments);
+      }
+      if (valid) {
+        banner += '<div class="hint ok">准入试磨 '+esc(valid.id)+'：合计 '+esc(valid.total)+'mg · 校准 '+dt(valid.calibrationAt)+' · 称人 '+esc(valid.weighedBy)+'</div>';
+      }
+      if (dead.length) banner += '<div class="meta">失效留档 '+dead.length+' 条（见单锭记录）</div>';
+      const logs = (item.logs||[]).slice(-3).map(l => '<div>'+dt(l.at)+' 【'+esc(l.step)+'】'+esc(l.note)+'</div>').join("");
+      return '<article class="card">'
+        + '<div class="row" style="justify-content:space-between"><h3>'+esc(item.code)+'</h3><span class="pill '+esc(item.status)+'">'+esc(item.status)+'</span></div>'
+        + '<div class="meta">烟料：'+fmt(item.smokeSource)+' ｜ 胶料：'+fmt(item.glueRatio)+' ｜ 年限：'+fmt(item.ageYears)+' ｜ 位置：'+fmt(item.storage)+'</div>'
+        + banner
+        + '<div class="row"><button class="mini secondary" data-detail="'+esc(item.code)+'">查看记录</button>'
+        + (open ? '<button class="mini" data-go="'+esc(item.code)+'">去称量</button>' : '') + '</div>'
+        + '<div class="logs meta">'+(logs || "暂无记录")+'</div>'
+        + '</article>';
+    }
+
+    function SEGMENTS_HTML(seg) {
+      if (!seg) return "";
+      return '<div class="segs">'
+        + [["front","前段"],["middle","中段"],["back","后段"]].map(([k,l]) =>
+            '<div><span>'+l+'出墨量</span><b>'+(seg[k]===null?'缺':esc(seg[k])+' mg')+'</b></div>').join("")
+        + '</div>';
+    }
+
+    function renderCards() {
+      const status = $("#statusFilter").value, q = $("#search").value.trim();
+      const visible = items.filter(i =>
+        (!status || i.status === status) &&
+        (!q || JSON.stringify({code:i.code,smokeSource:i.smokeSource,storage:i.storage}).includes(q)));
+      $("#cards").innerHTML = visible.map(cardHtml).join("") || '<div class="meta">没有匹配的墨锭</div>';
+      $$("[data-detail]").forEach(b => b.onclick = async () => {
+        localStorage.setItem("selectedCode", b.dataset.detail);
+        detailItem = await api("/api/items/" + encodeURIComponent(b.dataset.detail));
+        renderDetail();
+      });
+      $$("[data-go]").forEach(b => b.onclick = () => {
+        $("#itemSelect").value = b.dataset.go;
+        updateFormContext();
+        document.querySelector("#samplingForm").scrollIntoView({ behavior:"smooth" });
+      });
+    }
+
+    function renderDetail() {
+      const d = $("#detail");
+      if (!detailItem) { d.style.display = "none"; return; }
+      d.style.display = "";
+      $("#detailTitle").textContent = "单锭记录 · " + detailItem.code + " · " + detailItem.status;
+      const it = detailItem;
+      const profileRows = [
+        ["smokeSource","烟料来源",it.smokeSource],["glueRatio","胶料比例",it.glueRatio],
+        ["ageYears","存放年限",it.ageYears],["storage","存放位置",it.storage]
+      ].map(([k,l,v]) => '<tr><td>'+l+'</td><td id="pf-'+k+'">'+fmt(v)+'</td></tr>').join("");
+
+      const trials = (it.trials||[]).map((t, idx) => {
+        const tag = t.conclusion === "已试磨" ? '<span class="tag good">已试磨</span>'
+          : t.conclusion === "已失效" ? '<span class="tag dead">已失效留档</span>'
+          : '<span class="tag">未结束</span>';
+        const attempts = (t.attempts||[]).map(a =>
+          '<tr><td>'+dt(a.at)+'</td><td>'+esc(a.kind)+'</td><td>'+esc(a.by)+'</td><td>'+dt(a.calibrationAt)+'</td>'
+          + '<td>'+fmt(a.segments.front)+' / '+fmt(a.segments.middle)+' / '+fmt(a.segments.back)+'</td>'
+          + '<td>'+fmt(a.total)+'</td><td><b class="'+(a.result==="已试磨"?"":'bad')+'">'+esc(a.result)+'</b>'
+          + (a.reasons.length?'<div class="meta">'+esc(a.reasons.join("；"))+'</div>':'')+'</td></tr>').join("");
+        const archives = (t.archives||[]).map(ar =>
+          '<div class="archive"><b>【'+esc(ar.kind)+'】原结论失效留档</b> · '+dt(ar.at)+' · 操作人 '+esc(ar.by)
+          +'<br>原因：'+esc(ar.reason)
+          + (ar.snapshot ? '<br>原结论：'+esc(ar.snapshot.conclusion)+' ｜ 原三段 '+fmt(ar.snapshot.segments.front)+' / '
+            + fmt(ar.snapshot.segments.middle)+' / '+fmt(ar.snapshot.segments.back)+' ｜ 原合计 '+fmt(ar.snapshot.total)+'mg' : '')
+          + '</div>').join("");
+        const canFix = t.conclusion !== "已失效";
+        return '<div style="margin:10px 0;border:1px solid var(--line);border-radius:8px;padding:10px">'
+          + '<div class="row" style="justify-content:space-between"><b>试磨 '+esc(t.id)+'</b> '+tag+'</div>'
+          + '<div class="meta">首次提交 '+dt(t.openedAt)+' · 提交人 '+esc(t.openedBy)
+          + (t.finishedAt ? ' · 结束 '+dt(t.finishedAt) : '')
+          + (t.invalidatedAt ? ' · 失效于 '+dt(t.invalidatedAt) : '') + '</div>'
+          + '<table><thead><tr><th>时间</th><th>类型</th><th>称量人</th><th>校准时间</th><th>前/中/后(mg)</th><th>合计</th><th>判定</th></tr></thead><tbody>'
+          + (attempts || '<tr><td colspan="7" class="meta">尚无称量记录</td></tr>') + '</tbody></table>'
+          + archives
+          + (canFix ? '<div class="row" style="margin-top:8px"><span class="meta">修正段重：</span>'
+              + '<select id="fixSeg-'+idx+'" style="width:auto"><option value="front">前段</option><option value="middle">中段</option><option value="back">后段</option></select>'
+              + '<input id="fixVal-'+idx+'" type="number" step="0.1" min="0" placeholder="新重量mg" style="width:120px">'
+              + '<input id="fixBy-'+idx+'" placeholder="操作人" style="width:110px">'
+              + '<button class="mini" data-fix="'+idx+'">修正并留档</button></div>' : "")
+          + '</div>';
+      }).join("") || '<div class="meta">该锭尚无试磨</div>';
+
+      const logs = (it.logs||[]).map(l =>
+        '<tr><td style="white-space:nowrap">'+dt(l.at)+'</td><td>'+esc(l.step)+'</td><td>'+esc(l.note)+'</td></tr>').join("");
+
+      $("#detailBody").innerHTML =
+        '<h3 style="margin:4px 0">档案修正（改烟料/胶料将使原结论失效留档）</h3>'
+        + '<table style="max-width:420px"><tbody>'+profileRows+'</tbody></table>'
+        + '<div class="row" style="margin:8px 0">'
+        + '<input id="pf-smokeSource" placeholder="新烟料来源（变更即失效）" style="width:170px">'
+        + '<input id="pf-glueRatio" placeholder="新胶料比例（变更即失效）" style="width:150px">'
+        + '<input id="pf-ageYears" type="number" placeholder="年限" style="width:80px">'
+        + '<input id="pf-storage" placeholder="存放位置" style="width:120px">'
+        + '<input id="pf-operator" placeholder="操作人 *" style="width:110px">'
+        + '<button class="mini secondary" id="profileSave">提交修正</button></div>'
+        + '<h3 style="margin:12px 0 4px">试磨流水（前中后三段）</h3>' + trials
+        + '<h3 style="margin:12px 0 4px">操作日志</h3>'
+        + '<table><thead><tr><th>时间</th><th>环节</th><th>说明</th></tr></thead><tbody>'+logs+'</tbody></table>';
+
+      $("#profileSave").onclick = async () => {
+        const body = { operator: $("#pf-operator").value.trim() };
+        if (!body.operator) return alert("请填写修正操作人");
+        for (const k of ["smokeSource","glueRatio","ageYears","storage"]) {
+          const v = $("#pf-"+k).value.trim();
+          if (v !== "") body[k] = v;
+        }
+        await api("/api/items/"+encodeURIComponent(it.code)+"/profile", { method:"PATCH", body:JSON.stringify(body) });
+        await load();
+      };
+      $$("[data-fix]").forEach(btn => btn.onclick = async () => {
+        const idx = Number(btn.dataset.fix);
+        const t = detailItem.trials[idx];
+        const body = {
+          segment: $("#fixSeg-"+idx).value,
+          value: $("#fixVal-"+idx).value,
+          operator: $("#fixBy-"+idx).value.trim(),
+        };
+        if (body.value === "" || !body.operator) return alert("请填写新重量和操作人");
+        if (!confirm("修正段重将使该试磨原结论失效留档并重新开放判定，确认？")) return;
+        await api("/api/items/"+encodeURIComponent(detailItem.code)+"/trials/"+encodeURIComponent(t.id)+"/segment",
+          { method:"PATCH", body:JSON.stringify(body) });
+        await load();
+      });
+    }
+
+    function updateFormContext() {
+      const code = $("#itemSelect").value;
+      const item = items.find(i => i.code === code);
+      const errEl = $("#formError"); errEl.textContent = "";
+      if (!item) return;
+      const open = openTrialOf(item);
+      const lastAttempt = open && open.attempts.length ? open.attempts[open.attempts.length-1] : null;
+      const ctx = $("#openContext");
+      const openBtn = $("#openBtn"), submitBtn = $("#submitBtn");
+      openBtn.disabled = true; submitBtn.disabled = true;
+      if (open) {
+        const prevBy = lastAttempt ? lastAttempt.by : null;
+        if (item.status === "待复核") {
+          ctx.className = "hint warn";
+          ctx.innerHTML = '试磨 <b>'+esc(open.id)+'</b> 待复核：合计越界（'+fmt(lastAttempt && lastAttempt.total)+'mg）。<br>复核<b>必须换人</b>重称，原称人：<b>'+esc(prevBy)+'</b>；校准需在8小时内并重新称齐三段。';
+          submitBtn.disabled = false; submitBtn.textContent = "提交复核重称（换人）";
+        } else {
+          ctx.className = "hint " + (item.status === "待复采" ? "amber" : "");
+          ctx.innerHTML = '未结束试磨 <b>'+esc(open.id)+'</b>，状态：<b>'+esc(item.status)+'</b>，首次提交人：'+esc(open.openedBy)
+            + (lastAttempt ? '<br>上次转态原因：'+esc(lastAttempt.reasons.join("；")||"—") : '<br>请提交前中后三段称量');
+          submitBtn.disabled = false; submitBtn.textContent = "提交三段称量";
+        }
+      } else if (item.status === "已试磨") {
+        ctx.className = "hint ok";
+        ctx.textContent = "该锭试磨已结束并准入。如需再开一轮，可首次提交一条新试磨（每锭仍只保留一条未结束试磨）。";
+        openBtn.disabled = false; openBtn.textContent = "新开试磨（首次提交）";
+        submitBtn.textContent = "提交三段称量";
+      } else {
+        ctx.className = "hint";
+        ctx.textContent = "该锭尚无未结束试磨。先由负责人首次提交「开启试磨」，重复或并发提交会沿用首次那条。";
+        openBtn.disabled = false; openBtn.textContent = "开启试磨（首次提交）";
+        submitBtn.textContent = "提交三段称量";
+      }
+    }
+
+    function formPayload() {
+      const f = $("#samplingForm");
+      return {
+        operator: f.operator.value.trim(),
+        calibrationAt: f.calibrationAt.value,
+        front: f.front.value, middle: f.middle.value, back: f.back.value,
+      };
+    }
+    function liveTotalUpdate() {
+      const vals = $$(".seg").map(i => Number(i.value) || 0);
+      const sum = Math.round((vals[0]+vals[1]+vals[2]) * 100) / 100;
+      const el = $("#liveTotal");
+      el.textContent = sum;
+      el.style.color = sum >= 120 && sum <= 180 ? "var(--accent)" : "var(--warn)";
+    }
+
+    async function loadAndKeepSelect(prevCode) {
+      await load();
+      if (prevCode && items.some(i => i.code === prevCode)) $("#itemSelect").value = prevCode;
+      updateFormContext();
+    }
+
+    $("#openBtn").onclick = async () => {
+      const errEl = $("#formError"); errEl.textContent = "";
+      const code = $("#itemSelect").value, operator = $("#samplingForm").operator.value.trim();
+      if (!operator) { errEl.textContent = "请填写负责人（首次提交人）"; return; }
+      try {
+        const out = await api("/api/items/"+encodeURIComponent(code)+"/trials", { method:"POST", body:JSON.stringify({ operator }) });
+        await loadAndKeepSelect(code);
+        errEl.textContent = out.reused ? "已有未结束试磨，已沿用首次那条：" + out.trial.id : "试磨已开启：" + out.trial.id;
+      } catch (e) { errEl.textContent = e.message; }
+    };
+
+    $("#submitBtn").onclick = async () => {
+      const errEl = $("#formError"); errEl.textContent = "";
+      const code = $("#itemSelect").value;
+      const item = items.find(i => i.code === code);
+      const open = openTrialOf(item);
+      if (!open) { errEl.textContent = "请先「开启试磨（首次提交）」再提交称量"; return; }
+      const body = formPayload();
+      if (!body.operator) { errEl.textContent = "请填写称量人"; return; }
+      const endpoint = item.status === "待复核" ? "recheck" : "sampling";
+      try {
+        const out = await api("/api/items/"+encodeURIComponent(code)+"/trials/"+encodeURIComponent(open.id)+"/"+endpoint,
+          { method:"POST", body:JSON.stringify(body) });
+        $("#samplingForm").front.value = $("#samplingForm").middle.value = $("#samplingForm").back.value = "";
+        await loadAndKeepSelect(code);
+        errEl.textContent = "判定结果：" + out.evaluation.result + (out.evaluation.reasons.length ? "\n" + out.evaluation.reasons.join("\n") : "");
+        errEl.style.color = out.evaluation.result === "已试磨" ? "var(--accent)" : "var(--warn)";
+      } catch (e) { errEl.textContent = e.message + (e.reasons.length ? "\n" + e.reasons.join("\n") : ""); }
+    };
+
+    $("#createForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const f = e.target;
+      try {
+        await api("/api/items", { method:"POST", body:JSON.stringify(Object.fromEntries(new FormData(f).entries())) });
+        f.reset();
+        await load();
+      } catch (err) { alert(err.message); }
+    };
+    $("#itemSelect").onchange = updateFormContext;
+    $$(".seg").forEach(i => i.oninput = liveTotalUpdate);
+    $("#calNow").onclick = () => { $("#calibrationAt").value = nowLocal(); };
+    $("#statusFilter").onchange = renderCards;
+    $("#search").oninput = renderCards;
+    $("#reload").onclick = () => load().catch(e => alert(e.message));
+
+    function render() {
+      $("#itemSelect").innerHTML = items.map(i =>
+        '<option value="'+esc(i.code)+'">'+esc(i.code)+' · '+esc(i.smokeSource||"")+' · '+esc(i.status)+'</option>').join("");
+      const sel = localStorage.getItem("selectedCode");
+      if (sel && items.some(i => i.code === sel)) $("#itemSelect").value = sel;
+      const filter = $("#statusFilter");
+      if (filter.options.length === 1) filter.innerHTML += STATUSES.map(s => '<option>'+s+'</option>').join("");
+      $("#calibrationAt").value = nowLocal();
+      renderStats(); renderCards(); renderDetail(); updateFormContext(); liveTotalUpdate();
+    }
+    function tick(){ $("#clock").textContent = new Date().toLocaleString("zh-CN",{hour12:false}); }
+    tick(); setInterval(tick, 1000);
+    load().catch(e => alert(e.message));
+  </script>
+</body>
+</html>
